@@ -1,22 +1,37 @@
+import { useState } from "react";
 import { sendControlCommand } from "../services/mqttClient";
 
 export default function Controls() {
-  function kirimPerintah(perintah) {
-    const berhasil = sendControlCommand(perintah);
+  const [status, setStatus] = useState("Siap");
+
+  function kirimPerintah(command) {
+    const berhasil = sendControlCommand(command);
+
     if (!berhasil) {
-      alert("Gagal mengirim perintah: MQTT belum terhubung");
+      setStatus("MQTT tidak terhubung");
+      return;
     }
+
+    setStatus(`Perintah dikirim: ${command}`);
   }
 
   return (
-    <div>
-      <h3>Kontrol Jemuran</h3>
-      <div className="controls">
-        <button onClick={() => kirimPerintah("tarik")}>Tarik Jemuran</button>
-        <button onClick={() => kirimPerintah("turunkan")}>Turunkan Jemuran</button>
-        <button onClick={() => kirimPerintah("stop")}>Stop</button>
+    <div className="panel controls-panel">
+      <div className="panel-header">
+        <h3>Kontrol Jemuran</h3>
       </div>
-      <div className="small">Kontrol ini terhubung ke ESP32 lewat MQTT.</div>
+
+      <div className="mode-grid">
+        <button className="mode-button auto" onClick={() => kirimPerintah("auto")}>AUTO</button>
+        <button className="mode-button open" onClick={() => kirimPerintah("open")}>BUKA</button>
+        <button className="mode-button close" onClick={() => kirimPerintah("close")}>TUTUP</button>
+      </div>
+
+      <div className="controls-footer">
+        <button className="stop-button" onClick={() => kirimPerintah("stop")}>STOP</button>
+      </div>
+
+      <div className="controls-status">{status}</div>
     </div>
   );
 }

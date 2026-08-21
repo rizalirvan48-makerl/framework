@@ -1,18 +1,31 @@
 export default function RainAlert({ cuaca, sensor }) {
-  const kondisi = cuaca.weather[0].main.toLowerCase();
-  const hujanTerdeteksiSensor = sensor?.rain === true;
+  const sensorRain = !!sensor?.rain;
+  const weather = cuaca?.weather?.[0];
+  const weatherMain = weather?.main?.toLowerCase() ?? "";
 
-  const potensiHujan =
-    kondisi.includes("rain") ||
-    kondisi.includes("drizzle") ||
-    kondisi.includes("thunderstorm") ||
-    hujanTerdeteksiSensor;
+  const weatherRainWarning =
+    weatherMain.includes("rain") ||
+    weatherMain.includes("drizzle") ||
+    weatherMain.includes("thunderstorm");
 
-  if (!potensiHujan) return null;
+  if (!sensorRain && !weatherRainWarning) return null;
+
+  let text = "PERINGATAN CUACA";
+  if (sensorRain && weatherRainWarning) text = "HUJAN TERDETEKSI + PERINGATAN CUACA";
+  else if (sensorRain) text = "HUJAN TERDETEKSI";
+  else if (weatherRainWarning) text = "PERINGATAN CUACA";
 
   return (
-    <div className="rain-alert">
-      🌧️ Peringatan: {hujanTerdeteksiSensor ? "sensor mendeteksi hujan" : "kemungkinan hujan"}, segera angkat jemuran!
+    <div className="alert-box warning-box">
+      <div className="alert-icon">🌧</div>
+      <div>
+        <strong>{text}</strong>
+        <p>
+          {sensorRain
+            ? "Sensor hujan mendeteksi air dan jemuran disarankan segera ditutup."
+            : "Cuaca online memperkirakan kondisi hujan di lokasi Anda."}
+        </p>
+      </div>
     </div>
   );
 }

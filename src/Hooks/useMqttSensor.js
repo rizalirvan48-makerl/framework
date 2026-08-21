@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { connectMqtt } from "../services/mqttClient";
+import { connectMqtt, getMqttConnectionStatus } from "../services/mqttClient";
 
 const BROKER_URL = import.meta.env.VITE_MQTT_BROKER;
-const MQTT_AKTIF = BROKER_URL && !BROKER_URL.includes("broker.example");
+const MQTT_AKTIF = Boolean(BROKER_URL) && !BROKER_URL.includes("broker.example");
 
 export function useMqttSensor() {
   const [sensorData, setSensorData] = useState(null);
@@ -10,18 +10,40 @@ export function useMqttSensor() {
 
   useEffect(() => {
     if (!MQTT_AKTIF) {
+      setConnected(false);
+      setSensorData(null);
       console.warn("MQTT dinonaktifkan: VITE_MQTT_BROKER belum diisi alamat asli di .env");
-      return;
+      return undefined;
     }
 
     const client = connectMqtt((data) => {
+      if (data && data._invalid) {
+        setSensorData(null);
+        return;
+      }
+
       setSensorData(data);
     });
 
-    client.on("connect", () => setConnected(true));
-    client.on("close", () => setConnected(false));
+    if (!client) {
+      setConnected(false);
+      return undefined;
+    }
 
-    return () => client.end();
+    const updateConnection = () => setConnected(getMqttConnectionStatus());
+
+    client.on("connect", updateConnection);
+    client.on("close", updateConnection);
+    client.on("offline", updateConnection);
+    client.on("reconnect", updateConnection);
+
+    updateConnection();
+
+    return () => {
+      if (client && client.connected) {
+        client.end(true);
+      }
+    };
   }, []);
 
   return { sensorData, connected };
