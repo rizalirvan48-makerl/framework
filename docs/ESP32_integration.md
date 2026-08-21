@@ -1,32 +1,33 @@
-Integrasi ESP32 — opsi komunikasi dan skema data
+# Integrasi ESP32 — Firebase Realtime Database
 
-Opsi komunikasi:
-- MQTT (disarankan): ringan, push/pull realtime. Broker: Mosquitto, Cloud MQTT.
-- REST API: ESP32 memanggil endpoint HTTP untuk mengirim status, atau server memanggil ESP32 jika reachable.
-- WebSocket: realtime, tetapi lebih kompleks pada ESP32.
+Project ID: `smart-clothsline`
 
-Topik / Endpoint contoh (MQTT):
-- `smartclothesline/commands` (server -> ESP32): payload JSON {"cmd":"pull"|"lower"|"stop","req_id":"..."}
-- `smartclothesline/status` (ESP32 -> server): payload JSON {"state":"pulling"|"idle","position":75,"motor":true,"battery":3.7}
-- `smartclothesline/sensors` (ESP32 -> server): payload JSON {"rain":false,"humidity":58,"temp":28}
+Realtime Database URL: `https://smart-clothsline-default-rtdb.asia-southeast1.firebasedatabase.app`
 
-Payload contoh REST (POST /api/esp32/command):
+ESP32 menulis status terbaru ke `/sensor` dengan kontrak berikut. Nama dan tipe
+field ini adalah kontrak antara firmware dan web dashboard.
+
+```json
 {
-  "cmd": "pull",
-  "client": "dashboard",
-  "timestamp": 1690000000
+  "sensor": {
+    "temp": 32.3,
+    "humidity": 47.0,
+    "rain": false,
+    "clothesline": "open",
+    "mode": "auto",
+    "wifiStatus": "connected",
+    "wifiSSID": "UNS SOLO",
+    "lastUpdate": 1750000000000
+  },
+  "control": {
+    "command": "open"
+  }
 }
+```
 
-Rekomendasi arsitektur:
-- Gunakan MQTT untuk commands/status streaming, simpan last-known-state di server
-- Dashboard membaca dari server (HTTP) atau via WebSocket yang men-proxy broker MQTT
-- Autonomy: ESP32 bisa memutuskan menutup jemuran saat sensor rain=true
+Nilai command yang didukung pada `/control/command`: `open`, `close`, `stop`,
+dan `auto`. Dashboard hanya menulis string command tersebut; ESP32 membaca dan
+menindaklanjutinya. Weather API tetap terpisah sebagai sumber data cuaca online.
 
-Keamanan:
-- Autentikasi token pada REST atau username/password pada MQTT
-- Batasi akses per device ID
-
-Integrasi langkah selanjutnya:
-1. Tentukan broker MQTT dan topic naming
-2. Implementasikan handler di server untuk menerima status dan menyimpan state
-3. Dashboard subscribe ke endpoint server yang menyajikan state terakhir
+Jangan menyimpan service-account JSON, private key, atau password pada firmware
+atau frontend.

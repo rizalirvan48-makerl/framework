@@ -1,18 +1,19 @@
 import { useState } from "react";
-import { sendControlCommand } from "../services/mqttClient";
+import { sendControlCommand } from "../services/firebaseClient";
 
 export default function Controls() {
   const [status, setStatus] = useState("Siap");
 
-  function kirimPerintah(command) {
-    const berhasil = sendControlCommand(command);
+  async function kirimPerintah(command) {
+    setStatus("Mengirim perintah...");
 
-    if (!berhasil) {
-      setStatus("MQTT tidak terhubung");
-      return;
+    try {
+      await sendControlCommand(command);
+      setStatus(`Perintah dikirim ke Firebase: ${command}`);
+    } catch (error) {
+      console.error("Gagal mengirim perintah Firebase:", error);
+      setStatus(`Gagal mengirim perintah: ${error.message}`);
     }
-
-    setStatus(`Perintah dikirim: ${command}`);
   }
 
   return (

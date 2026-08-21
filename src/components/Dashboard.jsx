@@ -1,5 +1,5 @@
-import { useWeather } from "../hooks/useWeather";
-import { useMqttSensor } from "../hooks/useMqttSensor";
+import { useWeather } from "../Hooks/useWeather";
+import { useFirebaseSensor } from "../Hooks/useFirebaseSensor";
 import WeatherCard from "./WeatherCard";
 import DryingStatus from "./DryingStatus";
 import RainAlert from "./RainAlert";
@@ -19,13 +19,14 @@ function formatTimeStamp(value) {
 
 export default function Dashboard() {
   const { data: cuaca, loading, error } = useWeather();
-  const { sensorData, connected } = useMqttSensor();
+  const { sensorData, connected, error: firebaseError } = useFirebaseSensor();
 
-  const temperature = sensorData?.temp ?? (cuaca ? Math.round(cuaca.main.temp) : null);
-  const humidity = sensorData?.humidity ?? (cuaca ? cuaca.main.humidity : null);
-  const rain = sensorData?.rain ?? false;
+  const hasSensorData = Boolean(sensorData);
+  const temperature = sensorData?.temp ?? null;
+  const humidity = sensorData?.humidity ?? null;
+  const rain = sensorData?.rain;
   const clothesline = sensorData?.clothesline ?? "tidak diketahui";
-  const mode = sensorData?.mode ?? "auto";
+  const mode = sensorData?.mode ?? "-";
   const wifiStatus = sensorData?.wifiStatus ?? "offline";
   const wifiSSID = sensorData?.wifiSSID ?? "-";
   const lastUpdate = sensorData?.lastUpdate ?? null;
@@ -63,7 +64,7 @@ export default function Dashboard() {
             <div className="panel-header">
               <h3>Sensor Lokal</h3>
               <span className={`mini-badge ${connected ? "online" : "offline"}`}>
-                {connected ? "Data dari ESP32" : "ESP32 OFFLINE"}
+                {hasSensorData ? "Data dari ESP32" : "Menunggu data ESP32..."}
               </span>
             </div>
 
@@ -88,7 +89,7 @@ export default function Dashboard() {
                 <div className="sensor-icon">🌧</div>
                 <div>
                   <p className="label">RAIN SENSOR</p>
-                  <h3>{rain ? "HUJAN" : connected ? "CERAH" : "MENUNGGU DATA"}</h3>
+                  <h3>{rain === true ? "HUJAN" : rain === false ? "TIDAK HUJAN" : "Menunggu data ESP32..."}</h3>
                 </div>
               </div>
             </div>
@@ -105,9 +106,15 @@ export default function Dashboard() {
                 <span className={`device-state ${connected ? "online" : "offline"}`}>{connected ? "ONLINE" : "OFFLINE"}</span>
               </div>
               <div className="device-item">
-                <span>MQTT</span>
+                <span>Firebase RTDB</span>
                 <span className={`device-state ${connected ? "online" : "offline"}`}>{connected ? "CONNECTED" : "DISCONNECTED"}</span>
               </div>
+              {firebaseError && (
+                <div className="device-item">
+                  <span>Firebase</span>
+                  <span className="device-value">{firebaseError}</span>
+                </div>
+              )}
               <div className="device-item">
                 <span>WiFi</span>
                 <span className={`device-state ${wifiStatus === "connected" ? "online" : "offline"}`}>
