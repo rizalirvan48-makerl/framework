@@ -1,16 +1,18 @@
-import React from 'react'
+export default function RainAlert({ cuaca, sensor }) {
+  const kondisi = cuaca.weather[0].main.toLowerCase();
+  const hujanTerdeteksiSensor = sensor?.rain === true;
 
-export default function RainAlert({data}){
-  const willRain = data.chance_of_rain > 30 || data.precipitation_mm > 0
+  const potensiHujan =
+    kondisi.includes("rain") ||
+    kondisi.includes("drizzle") ||
+    kondisi.includes("thunderstorm") ||
+    hujanTerdeteksiSensor;
+
+  if (!potensiHujan) return null;
+
   return (
-    <div>
-      <h3>Peringatan Hujan</h3>
-      {willRain ? (
-        <div style={{color:'#b91c1c'}}>Diperkirakan hujan — ambil tindakan!</div>
-      ) : (
-        <div style={{color:'#065f46'}}>Tidak ada peringatan hujan saat ini</div>
-      )}
-      <div className="small">Saran: Jika probabilitas hujan > 30% sebaiknya tutup jemuran otomatis.</div>
+    <div className="rain-alert">
+      🌧️ Peringatan: {hujanTerdeteksiSensor ? "sensor mendeteksi hujan" : "kemungkinan hujan"}, segera angkat jemuran!
     </div>
-  )
+  );
 }

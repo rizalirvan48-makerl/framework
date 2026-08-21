@@ -1,13 +1,16 @@
-import React from 'react'
+export default function WeatherCard({ data }) {
+  const { main, weather, wind, name } = data;
 
-export default function WeatherCard({data}){
   return (
-    <div>
-      <h3>Cuaca Sekarang</h3>
-      <div className="weather-value">{data.temp}°C</div>
-      <div className="small">{data.condition} • Kelembaban {data.humidity}% • Angin {data.wind_kph} kph</div>
-      <hr />
-      <div className="small">Probabilitas hujan: {data.chance_of_rain}% • Curah hujan: {data.precipitation_mm} mm</div>
+    <div className="weather-card">
+      <h2>{name || "Lokasimu"}</h2>
+      <p className="suhu">{Math.round(main.temp)}°C</p>
+      <p className="deskripsi">{weather[0].description}</p>
+      <div className="detail">
+        <span>Kelembapan: {main.humidity}%</span>
+        <span>Angin: {wind.speed} m/s</span>
+        <span>Terasa seperti: {Math.round(main.feels_like)}°C</span>
+      </div>
     </div>
-  )
+  );
 }

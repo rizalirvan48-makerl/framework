@@ -1,13 +1,13 @@
-import React from 'react'
-import Dashboard from './components/Dashboard'
+import Dashboard from "./components/Dashboard";
+import "./App.css";
 
-export default function App(){
+function App() {
   return (
     <div className="app">
-      <header className="app-header">Smart Clothesline — Dashboard</header>
-      <main className="app-main">
-        <Dashboard />
-      </main>
+      <h1>🧺 Prediksi Cuaca Jemur</h1>
+      <Dashboard />
     </div>
-  )
+  );
 }
+
+export default App;
